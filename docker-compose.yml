@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql_db_2
+    environment:
+      MYSQL_DATABASE: baseparatagua
+      MYSQL_USER: usuario
+      MYSQL_PASSWORD: usuario
+      MYSQL_ROOT_PASSWORD: usuario
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  springboot:
+    build:
+      context: ./Ejercicio2MCMBackend
+      dockerfile: Dockerfile
+    image: springboot-api
+    container_name: springboot_api_2
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/baseparatagua?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+      SPRING_DATASOURCE_USERNAME: usuario
+      SPRING_DATASOURCE_PASSWORD: usuario
+
+  angular:
+    build:
+      context: ./Ejercicio2MCMFrontendAngular/mcm_proyecto_angular
+      dockerfile: Dockerfile
+    image: angular-frontend
+    container_name: angular_frontend
+    depends_on:
+      - springboot
+    ports:
+      - "4200:80"
+
+volumes:
+  db_data:
